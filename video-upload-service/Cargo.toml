@@ -1,0 +1,59 @@
+[package]
+name = "video_upload_service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web framework
+axum = { version = "0.7", features = ["macros", "multipart"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
+tokio = { version = "1", features = ["full", "signal"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "postgres", "uuid", "chrono"] }
+
+# S3 - using older versions compatible with Rust 1.86
+aws-config = "=1.1.7"
+aws-sdk-s3 = "=0.35.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Validation
+validator = { version = "0.16", features = ["derive"] }
+
+# UUID & Time
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Config
+dotenvy = "0.15"
+envy = "0.4"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+
+
+# Request ID
+ulid = { version = "1.1", features = ["serde"] }
+
+# Async trait support
+async-trait = "0.1"
+
+# HTTP client for tests
+reqwest = { version = "0.11", features = ["json"], optional = true }
+
+[dev-dependencies]
+mockall = "0.11"
+
+[features]
+default = []
+test-utils = ["reqwest"]

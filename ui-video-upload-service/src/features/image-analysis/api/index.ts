@@ -1,0 +1,1 @@
+export { analyzeImage } from './analyzeImage';

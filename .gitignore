@@ -1,0 +1,39 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+.continue/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+**/Dockerfile.dev
+
+# Logs
+*.log
+
+# Uploads
+uploads/
+tmp/
+
+# Test
+coverage/

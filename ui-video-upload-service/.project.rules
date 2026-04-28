@@ -1,0 +1,27 @@
+# Frontend Rules
+
+## Code Style
+- Использовать функциональные компоненты с хуками
+- TypeScript strict mode
+- ESLint + Prettier
+
+## Components
+- UI компоненты только из shadcn/ui
+- Кастомные компоненты в shared/ui
+- Feature компоненты в соответствующей папке
+
+## API
+- Все запросы через shared/api/client. Сами хуки в entities
+- Обработка ошибок через interceptor
+- Логирование запросов в dev режиме
+
+## Testing
+- Покрытие критического функционала >80%
+- Unit тесты для утилит и хуков
+- Integration тесты для API
+- E2E для основных сценариев (опционально)
+
+## State Management
+- Локальное состояние: useState/useReducer
+- Глобальное: Context API (если нужно)
+- Кеширование: React Query (опционально)
