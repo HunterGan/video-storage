@@ -64,9 +64,17 @@ export class S3Service implements OnModuleInit {
       ContentType: contentType,
     };
     const command = new PutObjectCommand(params);
-    return getSignedUrl(this.client, command, {
+    const url = await getSignedUrl(this.client, command, {
       expiresIn: this.presignedUrlTtlSeconds,
     });
+
+    // Presigned URL может быть относительным (начинается с /).
+    // Это происходит при работе с кастомными endpoint (MinIO, S3 Gateway).
+    // Если так — подставляем endpoint, как делает Rust-версия.
+    if (url.startsWith('/')) {
+      return `${this.endpoint}${url}`;
+    }
+    return url;
   }
 
   getPublicUrl(key: string): string {
