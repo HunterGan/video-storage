@@ -14,6 +14,7 @@ import {
   CreateVideoRequestDto,
   UploadUrlRequestDto,
   UploadUrlResponseDto,
+  UploadVideoDto,
 } from '../dto/video.dto';
 
 const ALLOWED_VIDEO_TYPES = [
@@ -41,6 +42,9 @@ export class VideoService {
     this.videoProcessingEnabled = process.env.VIDEO_PROCESSING_ENABLED === 'true';
   }
 
+  /**
+   * @deprecated Используйте uploadVideo вместо этого метода
+   */
   async generateUploadUrl(
     request: UploadUrlRequestDto,
   ): Promise<UploadUrlResponseDto> {
@@ -56,6 +60,46 @@ export class VideoService {
       file_url: fileUrl,
       key: s3Key,
     };
+  }
+
+  /**
+   * Загрузка видео через бекенд (обходит CORS)
+   * @param file - файл из запроса
+   * @param title - название видео
+   * @param description - описание (опционально)
+   */
+  async uploadVideo(
+    file: Express.Multer.File,
+    title: string,
+    description?: string,
+  ): Promise<VideoEntity> {
+    if (!file) {
+      throw new BadRequestException('Video file is required');
+    }
+
+    this.validateContentType(file.mimetype);
+
+    if (file.size > this.maxFileSizeMb * 1024 * 1024) {
+      throw new BadRequestException(
+        `File size exceeds ${this.maxFileSizeMb}MB limit`,
+      );
+    }
+
+    const s3Key = this.s3Service.generateS3Key(file.originalname);
+
+    await this.s3Service.uploadFile(file.buffer, s3Key, file.mimetype);
+
+    const fileUrl = this.s3Service.getPublicUrl(s3Key);
+
+    const video = await this.createVideo({
+      title,
+      description,
+      url: fileUrl,
+      s3_key: s3Key,
+    });
+
+    this.logger.log(`Video uploaded successfully: ${video.id}`);
+    return video;
   }
 
   async createVideo(

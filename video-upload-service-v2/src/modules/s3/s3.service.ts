@@ -54,6 +54,28 @@ export class S3Service implements OnModuleInit {
     return `videos/${crypto.randomUUID()}.${extension}`;
   }
 
+  /**
+   * Прямая загрузка файла в S3 через бекенд
+   * @param fileBuffer - буфер файла
+   * @param key - S3 ключ
+   * @param contentType - MIME тип
+   */
+  async uploadFile(
+    fileBuffer: Buffer,
+    key: string,
+    contentType: string,
+  ): Promise<void> {
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: fileBuffer,
+      ContentType: contentType,
+    });
+
+    await this.client.send(command);
+    this.logger.log(`File uploaded to S3: ${key}`);
+  }
+
   async generatePresignedUrl(
     key: string,
     contentType: string,

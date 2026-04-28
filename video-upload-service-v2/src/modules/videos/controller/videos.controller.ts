@@ -8,7 +8,10 @@ import {
   Body,
   HttpStatus,
   HttpCode,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { VideoService } from '../service/video.service';
 import {
@@ -18,6 +21,7 @@ import {
   VideoResponseDto,
   PaginationParamsDto,
   PaginatedVideosDto,
+  UploadVideoDto,
 } from '../dto/video.dto';
 
 @ApiTags('videos')
@@ -32,6 +36,29 @@ export class VideosController {
     @Body() request: UploadUrlRequestDto,
   ): Promise<UploadUrlResponseDto> {
     return this.videoService.generateUploadUrl(request);
+  }
+
+  @Post('upload')
+  @ApiOperation({ summary: 'Upload a video file directly' })
+  @ApiResponse({ status: 201, type: VideoResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid file or validation error' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 500 * 1024 * 1024, // 500MB
+      },
+    }),
+  )
+  async uploadVideo(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() uploadDto: UploadVideoDto,
+  ): Promise<VideoResponseDto> {
+    const video = await this.videoService.uploadVideo(
+      file,
+      uploadDto.title,
+      uploadDto.description,
+    );
+    return this.mapToDto(video);
   }
 
   @Post()

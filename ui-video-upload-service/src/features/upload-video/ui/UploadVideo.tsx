@@ -4,10 +4,7 @@ import { toast } from 'sonner';
 import { Upload, X, FileVideo, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '../../../shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
-import { Label } from '../../../shared/ui/label';
-import { Checkbox } from '../../../shared/ui/checkbox';
 import { Progress } from '../../../shared/ui/progress';
-import type { ProcessOptions } from '../../../entities/video/types';
 import { videoApi } from '../../../shared/api/video';
 
 interface FileUploadState {
@@ -30,11 +27,6 @@ const ACCEPTED_TYPES = {
 
 export function UploadVideo({ onUploadComplete }: UploadVideoProps) {
   const [files, setFiles] = useState<FileUploadState[]>([]);
-  const [processOptions, setProcessOptions] = useState<ProcessOptions>({
-    compress: false,
-    convertToMp4: true,
-    generateThumbnail: true,
-  });
   const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -65,44 +57,8 @@ export function UploadVideo({ onUploadComplete }: UploadVideoProps) {
 
   const uploadFile = async (fileState: FileUploadState, index: number) => {
     try {
-      
-      // Step 1: Get presigned URL via API client
-      const uploadUrlData = await videoApi.getUploadUrl(fileState.file.name, fileState.file.type);
-      let presignedUrl = uploadUrlData.upload_url;
-
-      // Step 2: Upload to S3
-      // Используем presigned URL для загрузки
-      console.log('TRY UPLOADING FILE', presignedUrl)
-
-      if (!presignedUrl.includes('http')) {
-        presignedUrl = `http://${presignedUrl}`
-      }
-
-      const uploadResponse = await fetch(presignedUrl, {
-        method: 'PUT',
-        body: fileState.file,
-        headers: {
-          'Content-Type': fileState.file.type,
-          'Content-Length': fileState.file.size.toString(),
-        },
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload to S3');
-      }
-
-      // Step 3: Save metadata via API client
       const videoTitle = fileState.file.name.replace(/\.[^/.]+$/, '');
-      
-      // После загрузки используем file_url из ответа бэкенда
-      const videoUrl = uploadUrlData.file_url?.replace(/\?.*/, '') || '';
-      
-      await videoApi.createVideo({
-        title: videoTitle,
-        url: videoUrl,
-        s3_key: uploadUrlData.key || '',
-      } as any);
-
+      await videoApi.uploadVideo(fileState.file, videoTitle);
       updateStatus(index, 'uploaded');
       toast.success(`Uploaded: ${fileState.file.name}`);
     } catch (error) {
@@ -157,51 +113,6 @@ export function UploadVideo({ onUploadComplete }: UploadVideoProps) {
             <p className="text-sm text-muted-foreground">
               or click to select files (MP4, WebM, OGG up to 500MB)
             </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Processing Options */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Processing Options</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="convertToMp4"
-              checked={processOptions.convertToMp4}
-              onCheckedChange={(checked) => 
-                setProcessOptions(prev => ({ ...prev, convertToMp4: checked as boolean }))
-              }
-            />
-            <Label htmlFor="convertToMp4" className="text-sm">
-              Convert to MP4 (recommended)
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="compress"
-              checked={processOptions.compress}
-              onCheckedChange={(checked) => 
-                setProcessOptions(prev => ({ ...prev, compress: checked as boolean }))
-              }
-            />
-            <Label htmlFor="compress" className="text-sm">
-              Compress video (reduces file size)
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="generateThumbnail"
-              checked={processOptions.generateThumbnail}
-              onCheckedChange={(checked) => 
-                setProcessOptions(prev => ({ ...prev, generateThumbnail: checked as boolean }))
-              }
-            />
-            <Label htmlFor="generateThumbnail" className="text-sm">
-              Generate preview thumbnail
-            </Label>
           </div>
         </CardContent>
       </Card>

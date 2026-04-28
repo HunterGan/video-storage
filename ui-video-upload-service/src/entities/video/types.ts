@@ -16,10 +16,13 @@ export interface VideoFormData {
   folderId?: string | null;
 }
 
-export interface UploadUrlResponse {
-  upload_url: string;
-  file_url: string;
-  key: string;
+export interface UploadVideoResponse {
+  id: string;
+  title: string;
+  description?: string;
+  url: string;
+  s3_key: string;
+  created_at: string;
 }
 
 export interface ProcessOptions {

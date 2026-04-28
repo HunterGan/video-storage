@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import type {
   Video,
   VideoFormData,
-  UploadUrlResponse,
+  UploadVideoResponse,
   ProcessOptions,
 } from '../../entities/video/types';
 
@@ -17,10 +17,13 @@ export class VideoApi {
     return response;
   }
 
-  async getUploadUrl(filename: string, contentType?: string): Promise<UploadUrlResponse> {
-    const response = await apiClient.post<UploadUrlResponse>('/api/videos/upload-url', {
-      filename,
-      content_type: contentType || 'video/mp4',
+  async uploadVideo(file: File, title: string, description?: string): Promise<Video> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    if (description) formData.append('description', description);
+    const response = await apiClient.post<Video>('/api/videos/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response;
   }

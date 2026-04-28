@@ -95,3 +95,16 @@ export class PaginatedVideosDto {
   @ApiProperty()
   offset!: number;
 }
+
+export class UploadVideoDto {
+  @ApiProperty({ description: 'Title of the video' })
+  @IsString()
+  @Length(1, 500)
+  title!: string;
+
+  @ApiPropertyOptional({ description: 'Description of the video' })
+  @IsOptional()
+  @IsString()
+  @Length(0, 2000)
+  description?: string;
+}
