@@ -15,6 +15,7 @@ export class S3Service implements OnModuleInit {
   private client: S3Client = null as unknown as S3Client;
   private bucket: string = '';
   private endpoint: string = '';
+  private publicUrl: string = '';
   private presignedUrlTtlSeconds: number = 3600;
 
   constructor(private configService: ConfigService) {}
@@ -22,8 +23,9 @@ export class S3Service implements OnModuleInit {
   onModuleInit() {
     this.endpoint = this.configService.getOrThrow<string>('S3_ENDPOINT');
     this.bucket = this.configService.getOrThrow<string>('S3_BUCKET');
+    this.publicUrl = this.configService.get<string>('S3_PUBLIC_URL') || this.endpoint.replace(/\/+$/, '');
     this.presignedUrlTtlSeconds =
-      this.configService.get<number>('PRESIGNED_URL_TTL_SECONDS') || 3600;
+    this.configService.get<number>('PRESIGNED_URL_TTL_SECONDS') || 3600;
     this.client = new S3Client({
       region: this.configService.get<string>('S3_REGION') || 'ru-moscow-1',
       endpoint: this.endpoint,
@@ -100,8 +102,8 @@ export class S3Service implements OnModuleInit {
   }
 
   getPublicUrl(key: string): string {
-    const endpoint = this.endpoint.replace(/\/+$/, '');
-    return `${endpoint}/${this.bucket}/${key}`;
+    const base = this.publicUrl.replace(/\/+$/, '');
+    return `${base}/${this.bucket}/${key}`;
   }
 
   async deleteObject(key: string): Promise<void> {
