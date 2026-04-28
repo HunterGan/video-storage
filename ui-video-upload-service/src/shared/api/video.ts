@@ -2,7 +2,6 @@ import { apiClient } from './client';
 import type {
   Video,
   VideoFormData,
-  UploadVideoResponse,
   ProcessOptions,
 } from '../../entities/video/types';
 
