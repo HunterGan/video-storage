@@ -46,10 +46,10 @@ logs: check-docker
 	@docker compose -f docker-compose.yml logs -f
 
 logs-backend: check-docker
-	@docker compose -f docker-compose.yml logs -f video-upload-service
+	@docker compose -f docker-compose.yml logs -f api
 
 logs-frontend: check-docker
-	@docker compose -f docker-compose.yml logs -f ui-video-upload-service
+	@docker compose -f docker-compose.yml logs -f frontend
 
 # Rebuild and restart
 rebuild: check-docker

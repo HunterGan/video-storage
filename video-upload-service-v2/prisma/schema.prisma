@@ -15,6 +15,11 @@ enum VideoStatus {
   FAILED
 }
 
+enum VideoQuality {
+  SD
+  HD
+}
+
 model Video {
   id            String         @id @default(uuid())
   title         String
@@ -27,10 +32,28 @@ model Video {
   processing_started_at   DateTime?
   processing_finished_at  DateTime?
   error_message           String?
+  duration                Double?
   created_at              DateTime      @default(now())
   updated_at              DateTime      @updatedAt
+  versions                VideoVersion[]
   @@map("videos")
   @@index([created_at])
   @@index([s3_key])
   @@index([status])
+}
+
+model VideoVersion {
+  id        String    @id @default(uuid())
+  video_id  String
+  quality   VideoQuality @default(HD)
+  url       String
+  width     Int?
+  height    Int?
+  file_size BigInt?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  video     Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  @@map("video_versions")
+  @@index([video_id])
+  @@index([quality])
 }
