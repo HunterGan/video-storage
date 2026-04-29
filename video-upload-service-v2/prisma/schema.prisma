@@ -32,7 +32,7 @@ model Video {
   processing_started_at   DateTime?
   processing_finished_at  DateTime?
   error_message           String?
-  duration                Double?
+  duration                Float?
   created_at              DateTime      @default(now())
   updated_at              DateTime      @updatedAt
   versions                VideoVersion[]
