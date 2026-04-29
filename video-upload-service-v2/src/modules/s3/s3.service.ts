@@ -103,7 +103,8 @@ export class S3Service implements OnModuleInit {
 
   getPublicUrl(key: string): string {
     const base = this.publicUrl.replace(/\/+$/, '');
-    return `${base}/${this.bucket}/${key}`;
+    // Selectel Storage: {publicUrl}/{key} without bucket in path
+    return `${base}/${key}`;
   }
 
   async deleteObject(key: string): Promise<void> {

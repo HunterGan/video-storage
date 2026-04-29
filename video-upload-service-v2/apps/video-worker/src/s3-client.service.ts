@@ -9,16 +9,19 @@ export class S3ClientService {
   constructor() {
     this.bucket = process.env.S3_BUCKET || 'videos';
 
-    const region = process.env.AWS_REGION || 'us-east-1';
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID || '';
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '';
+    const region = process.env.S3_REGION || 'us-east-1';
+    const accessKeyId = process.env.S3_ACCESS_KEY || '';
+    const secretAccessKey = process.env.S3_SECRET_KEY || '';
+    const endpoint = process.env.S3_ENDPOINT;
 
     this.client = new S3Client({
       region,
+      endpoint,
       credentials: {
         accessKeyId,
         secretAccessKey,
       },
+      forcePathStyle: true,
     });
   }
 

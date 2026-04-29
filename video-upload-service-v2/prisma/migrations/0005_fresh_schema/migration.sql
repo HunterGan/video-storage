@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS "video_versions" CASCADE;
 
 DROP TABLE IF EXISTS "videos" CASCADE;
 
+CREATE TYPE "VideoStatus" AS ENUM ('UPLOADED', 'QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED');
+
 CREATE TABLE "videos" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "title" TEXT NOT NULL,
@@ -11,7 +13,7 @@ CREATE TABLE "videos" (
     "s3_key" TEXT NOT NULL,
     "processed_url" TEXT,
     "poster_url" TEXT,
-    "status" TEXT NOT NULL DEFAULT 'UPLOADED',
+    "status" "VideoStatus" NOT NULL DEFAULT 'UPLOADED',
     "processing_started_at" TIMESTAMP(3),
     "processing_finished_at" TIMESTAMP(3),
     "error_message" TEXT,
@@ -26,6 +28,8 @@ CREATE INDEX "videos_created_at_idx" ON "videos"("created_at");
 CREATE INDEX "videos_title_idx" ON "videos"("title");
 CREATE INDEX "videos_status_idx" ON "videos"("status");
 CREATE INDEX "videos_s3_key_idx" ON "videos"("s3_key");
+
+DROP TYPE IF EXISTS "video_quality" CASCADE;
 
 CREATE TYPE "video_quality" AS ENUM ('SD', 'HD');
 
