@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
-    "start:prod": "node dist/main"
+    "start:prod": "node dist/main",
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",

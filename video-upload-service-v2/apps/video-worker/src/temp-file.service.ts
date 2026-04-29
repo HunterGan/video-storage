@@ -41,14 +41,17 @@ export class TempFileService {
       const stale = entries
         .filter((e) => e.isDirectory() && e.name.startsWith('video-worker-'))
         .filter(async (e) => {
-          const stats = await new Promise((resolve) =>
-            stat(join(tmpdir(), e.name), resolve),
+          const stats = await new Promise<import('node:fs').Stats>((resolve, reject) =>
+            stat(join(tmpdir(), e.name), (err, stats) => {
+              if (err) reject(err);
+              else resolve(stats);
+            }),
           ) as import('node:fs').Stats;
           return (now - stats.mtimeMs) > this.cleanupAgeMs;
         });
       const stalePaths = stale.map((e) => join(tmpdir(), e.name));
       await Promise.allSettled(
-        stalePaths.map((d) => rm(d, { recursive: true, force: true }).catch(() => {})),
+        stalePaths.map((d) => rm(d, { recursive: true, force: true }).catch(() => { })),
       );
       for (const d of stalePaths) {
         this.tempDirs.delete(d);

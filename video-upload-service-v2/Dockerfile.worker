@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy entire monorepo to get all node_modules (shared dependencies)
 COPY package.json package-lock.json* ./
-COPY apps/video-worker/package.json ./apps/video-worker/ 2>/dev/null || true
+
 COPY prisma ./prisma
 
 RUN npm ci
@@ -20,7 +20,9 @@ COPY . .
 RUN npx prisma generate
 
 # Compile worker separately (nest build only compiles root src/)
-RUN npx tsc --project apps/video-worker/tsconfig.json
+
+RUN cd apps/video-worker && npm install && npm run build
+RUN npm run build --workspace=apps/video-worker
 
 # ── Stage 2: runner ──
 FROM node:${NODE_VERSION}-alpine
