@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaClient, Video } from '@prisma/client';
+import { PrismaClient, Video, VideoStatus } from '@prisma/client';
 
 export class VideoEntity {
   id!: string;
@@ -7,7 +7,12 @@ export class VideoEntity {
   description?: string;
   url!: string;
   s3_key!: string;
+  status!: VideoStatus;
+  processing_started_at?: Date;
+  processing_finished_at?: Date;
+  error_message?: string;
   created_at!: Date;
+  updated_at!: Date;
 }
 
 @Injectable()
@@ -48,6 +53,17 @@ export class VideoRepository {
     return video ? this.mapEntity(video) : null;
   }
 
+  async updateStatus(
+    id: string,
+    status: VideoStatus,
+  ): Promise<VideoEntity | null> {
+    const video = await this.prisma.video.update({
+      where: { id },
+      data: { status },
+    });
+    return this.mapEntity(video);
+  }
+
   async list(limit: number, offset: number): Promise<{
     videos: VideoEntity[];
     total: number;
@@ -84,7 +100,12 @@ export class VideoRepository {
       description: video.description || undefined,
       url: video.url,
       s3_key: video.s3_key,
+      status: video.status,
+      processing_started_at: video.processing_started_at || undefined,
+      processing_finished_at: video.processing_finished_at || undefined,
+      error_message: video.error_message || undefined,
       created_at: video.created_at,
+      updated_at: video.updated_at,
     };
   }
 

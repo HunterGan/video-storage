@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, VideoStatus } from '@prisma/client';
 import { EventEmitter2, EventEmitterModule, OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
@@ -11,8 +11,11 @@ export class DatabaseMonitorService implements OnModuleInit, OnModuleDestroy {
   private reconnectAttempts = 0;
   private lastDisconnectTime: Date | null = null;
   private checkInterval?: ReturnType<typeof setInterval>;
+  private recoveryInterval?: ReturnType<typeof setInterval>;
   private readonly maxReconnectAttempts = 30;
   private readonly checkIntervalMs = 10000;
+  private readonly recoveryCheckMinutes = 30;
+  private readonly recoveryEnabled = process.env.RECOVERY_ENABLED !== 'false';
 
   constructor(
     private readonly configService: ConfigService,
@@ -37,6 +40,7 @@ export class DatabaseMonitorService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.startHealthCheck();
+    this.startRecoveryCheck();
   }
 
   onModuleDestroy(): void {
@@ -97,5 +101,26 @@ export class DatabaseMonitorService implements OnModuleInit, OnModuleDestroy {
         this.eventEmitter.emit('database.disconnected');
       }
     }, this.checkIntervalMs);
+  }
+
+  private startRecoveryCheck(): void {
+    if (!this.recoveryEnabled) return;
+    this.recoveryInterval = setInterval(async () => {
+      const stuckThreshold = new Date(Date.now() - this.recoveryCheckMinutes * 60 * 1000);
+      const result = await this.prisma.video.updateMany({
+        where: {
+          status: VideoStatus.PROCESSING,
+          processing_started_at: { lte: stuckThreshold },
+        },
+        data: {
+          status: VideoStatus.QUEUED,
+          processing_started_at: null,
+          error_message: 'Worker crash recovery — job reset',
+        },
+      });
+      if (result.count > 0) {
+        this.logger.warn(`Recovery: reset ${result.count} stuck processing jobs`);
+      }
+    }, 5 * 60 * 1000); // every 5 minutes
   }
 }

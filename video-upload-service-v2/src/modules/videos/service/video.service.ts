@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { VideoStatus } from '@prisma/client';
 import { S3Service } from '../../s3/s3.service';
 import { VideoRepository, VideoEntity } from '../repository/video.repository';
 import { JobQueueService } from '../job-queue/job-queue.module';
@@ -30,7 +31,6 @@ export class VideoService {
   private readonly logger = new Logger(VideoService.name);
   private readonly maxFileSizeMb: number;
   private readonly cdnBaseUrl: string;
-  private readonly videoProcessingEnabled: boolean;
 
   constructor(
     private readonly videoRepository: VideoRepository,
@@ -39,12 +39,8 @@ export class VideoService {
   ) {
     this.maxFileSizeMb = parseInt(process.env.MAX_FILE_SIZE_MB || '500', 10);
     this.cdnBaseUrl = process.env.CDN_BASE_URL || '';
-    this.videoProcessingEnabled = process.env.VIDEO_PROCESSING_ENABLED === 'true';
   }
 
-  /**
-   * @deprecated Используйте uploadVideo вместо этого метода
-   */
   async generateUploadUrl(
     request: UploadUrlRequestDto,
   ): Promise<UploadUrlResponseDto> {
@@ -62,12 +58,6 @@ export class VideoService {
     };
   }
 
-  /**
-   * Загрузка видео через бекенд (обходит CORS)
-   * @param file - файл из запроса
-   * @param title - название видео
-   * @param description - описание (опционально)
-   */
   async uploadVideo(
     file: Express.Multer.File,
     title: string,
@@ -86,7 +76,6 @@ export class VideoService {
     }
 
     const s3Key = this.s3Service.generateS3Key(file.originalname);
-
     await this.s3Service.uploadFile(file.buffer, s3Key, file.mimetype);
 
     const fileUrl = this.s3Service.getPublicUrl(s3Key);
@@ -109,6 +98,7 @@ export class VideoService {
     if (existing) {
       throw new ConflictException('Video already exists with this S3 key');
     }
+
     const video = await this.videoRepository.create({
       id: uuidv4(),
       title: request.title,
@@ -116,16 +106,20 @@ export class VideoService {
       url: request.url,
       s3_key: request.s3_key,
     });
-    this.logger.log(`Video created: ${video.id}`);
-    if (this.videoProcessingEnabled) {
-      const outputKey = `${request.s3_key}-processed`;
-      await this.jobQueueService.enqueue(
-        JobType.ProcessVideo,
-        { s3_key: request.s3_key, output_key: outputKey },
-      ).catch((err) => {
-        this.logger.warn(`Failed to enqueue video processing job: ${err}`);
-      });
-    }
+
+    // Queue processing
+    const outputKey = `${request.s3_key}-processed`;
+    await this.jobQueueService.enqueue(
+      JobType.ProcessVideo,
+      { s3_key: request.s3_key, output_key: outputKey },
+    ).catch((err) => {
+      this.logger.warn(`Failed to enqueue processing job: ${err}`);
+    });
+
+    // Update status to QUEUED
+    await this.videoRepository.updateStatus(video.id, VideoStatus.QUEUED);
+    this.logger.log(`Video queued for processing: ${video.id}`);
+
     return video;
   }
 
@@ -152,6 +146,14 @@ export class VideoService {
     }
     await this.videoRepository.deleteById(id);
     this.logger.log(`Video deleted: ${id}`);
+  }
+
+  async updateVideoStatus(id: string, status: VideoStatus): Promise<VideoEntity> {
+    const video = await this.videoRepository.findById(id);
+    if (!video) throw new NotFoundException('Video not found');
+    const updated = await this.videoRepository.updateStatus(id, status);
+    if (!updated) throw new NotFoundException('Video not found');
+    return updated;
   }
 
   private validateContentType(contentType: string): void {

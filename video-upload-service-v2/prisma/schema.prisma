@@ -7,15 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum VideoStatus {
+  UPLOADED
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model Video {
-  id         String   @id @default(uuid())
-  title      String
-  description String?
-  url        String
-  s3_key     String   @unique
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id            String         @id @default(uuid())
+  title         String
+  description   String?
+  url           String
+  s3_key        String         @unique
+  processed_url String?
+  poster_url    String?
+  status                  VideoStatus    @default(UPLOADED)
+  processing_started_at   DateTime?
+  processing_finished_at  DateTime?
+  error_message           String?
+  created_at              DateTime      @default(now())
+  updated_at              DateTime      @updatedAt
   @@map("videos")
   @@index([created_at])
   @@index([s3_key])
+  @@index([status])
 }

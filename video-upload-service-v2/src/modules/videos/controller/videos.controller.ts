@@ -22,6 +22,7 @@ import {
   PaginationParamsDto,
   PaginatedVideosDto,
   UploadVideoDto,
+  StatusResponseDto,
 } from '../dto/video.dto';
 
 @ApiTags('videos')
@@ -100,6 +101,20 @@ export class VideosController {
     return this.mapToDto(video);
   }
 
+  @Get(':id/status')
+  @ApiOperation({ summary: 'Get video processing status (for polling)' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiResponse({ status: 200, type: StatusResponseDto })
+  @ApiResponse({ status: 404, description: 'Video not found' })
+  async getVideoStatus(@Param('id') id: string): Promise<StatusResponseDto> {
+    const video = await this.videoService.getVideo(id);
+    return {
+      id: video.id,
+      status: video.status,
+      error_message: video.error_message,
+    };
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a video and its S3 object' })
@@ -116,6 +131,7 @@ export class VideosController {
     description?: string;
     url: string;
     s3_key: string;
+    status: string;
     created_at: Date;
   }): VideoResponseDto {
     return {
@@ -124,6 +140,7 @@ export class VideosController {
       description: video.description,
       url: video.url,
       s3_key: video.s3_key,
+      status: video.status,
       created_at: video.created_at.toISOString(),
     };
   }

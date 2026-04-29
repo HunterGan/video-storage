@@ -62,7 +62,21 @@ export class VideoResponseDto {
   s3_key!: string;
 
   @ApiProperty()
+  status!: string;
+
+  @ApiProperty()
   created_at!: string;
+}
+
+export class StatusResponseDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  status!: string;
+
+  @ApiPropertyOptional({ description: 'Error message if status is FAILED' })
+  error_message?: string;
 }
 
 export class PaginationParamsDto {

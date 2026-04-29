@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1
+ARG NODE_VERSION=22
+ARG ALPINE_VERSION=3.21
+
+# ── Stage 1: build ──
+FROM node:${NODE_VERSION}-alpine AS builder
+WORKDIR /app
+
+# Copy entire monorepo to get all node_modules (shared dependencies)
+COPY package.json package-lock.json* ./
+COPY apps/video-worker/package.json ./apps/video-worker/ 2>/dev/null || true
+COPY prisma ./prisma
+
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Compile worker separately (nest build only compiles root src/)
+RUN npx tsc --project apps/video-worker/tsconfig.json
+
+# ── Stage 2: runner ──
+FROM node:${NODE_VERSION}-alpine
+
+RUN apk add --no-cache ffmpeg
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/video-worker/dist ./apps/video-worker/dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./
+
+# Migrations must be executed by API service or CI/CD pipeline, not by workers
+# to avoid race conditions when scaling multiple worker replicas
+ENTRYPOINT ["node", "apps/video-worker/dist/main"]
