@@ -33,6 +33,7 @@ model Video {
   processing_finished_at  DateTime?
   error_message           String?
   duration                Float?
+  file_size               BigInt?
   created_at              DateTime      @default(now())
   updated_at              DateTime      @updatedAt
   versions                VideoVersion[]

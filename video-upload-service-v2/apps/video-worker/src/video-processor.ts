@@ -4,7 +4,7 @@ const { VideoStatus } = require('@prisma/client');
 import { Job } from 'bullmq';
 import { createLogger } from './logger';
 import { JobType } from './types';
-import { FfmpegService } from './ffmpeg.service';
+import { FfmpegService, VideoMetadata } from './ffmpeg.service';
 import { S3ClientService } from './s3-client.service';
 import { TempFileService } from './temp-file.service';
 
@@ -58,6 +58,11 @@ export class VideoProcessor {
       await this.s3.downloadFile(s3_key, inputPath);
       this.logger.info(`Downloaded original video to ${inputPath}`);
 
+      // Extract metadata
+      this.logger.info('Extracting video metadata...');
+      const metadata = await this.ffmpeg.getMetadata(inputPath);
+      this.logger.info(`Video metadata: ${metadata.duration.toFixed(2)}s, ${metadata.width}x${metadata.height}`);
+
       // Encode to optimized MP4
       this.logger.info('Starting ffmpeg encode...');
       await this.ffmpeg.encode(inputPath, outputPath);
@@ -90,6 +95,8 @@ export class VideoProcessor {
           processing_finished_at: new Date(),
           processed_url: processedUrl,
           poster_url: posterUrl,
+          duration: metadata.duration,
+          file_size: metadata.file_size,
         },
       });
 

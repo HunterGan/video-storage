@@ -7,10 +7,14 @@ export class VideoEntity {
   description?: string;
   url!: string;
   s3_key!: string;
+  processed_url?: string;
+  poster_url?: string;
   status!: VideoStatus;
   processing_started_at?: Date;
   processing_finished_at?: Date;
   error_message?: string;
+  duration?: number;
+  file_size?: number;
   created_at!: Date;
   updated_at!: Date;
 }
@@ -100,10 +104,14 @@ export class VideoRepository {
       description: video.description || undefined,
       url: video.url,
       s3_key: video.s3_key,
+      processed_url: video.processed_url || undefined,
+      poster_url: video.poster_url || undefined,
       status: video.status,
       processing_started_at: video.processing_started_at || undefined,
       processing_finished_at: video.processing_finished_at || undefined,
       error_message: video.error_message || undefined,
+      duration: video.duration || undefined,
+      file_size: video.file_size ? Number(video.file_size) : undefined,
       created_at: video.created_at,
       updated_at: video.updated_at,
     };

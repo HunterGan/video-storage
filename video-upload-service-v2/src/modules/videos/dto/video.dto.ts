@@ -87,6 +87,9 @@ export class VideoResponseDto {
 
   @ApiPropertyOptional()
   updated_at?: string;
+
+  @ApiPropertyOptional()
+  file_size?: number;
 }
 
 export class StatusResponseDto {

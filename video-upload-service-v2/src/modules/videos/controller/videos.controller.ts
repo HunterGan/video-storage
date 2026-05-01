@@ -135,6 +135,7 @@ export class VideosController {
     poster_url?: string;
     error_message?: string;
     duration?: number;
+    file_size?: number;
     status: string;
     created_at: Date;
     processing_started_at?: Date;
@@ -156,6 +157,7 @@ export class VideosController {
       processing_started_at: video.processing_started_at?.toISOString(),
       processing_finished_at: video.processing_finished_at?.toISOString(),
       updated_at: video.updated_at.toISOString(),
+      file_size: video.file_size,
     };
   }
 }
