@@ -66,6 +66,27 @@ export class VideoResponseDto {
 
   @ApiProperty()
   created_at!: string;
+
+  @ApiPropertyOptional()
+  processed_url?: string;
+
+  @ApiPropertyOptional()
+  poster_url?: string;
+
+  @ApiPropertyOptional()
+  error_message?: string;
+
+  @ApiPropertyOptional()
+  duration?: number;
+
+  @ApiPropertyOptional()
+  processing_started_at?: string;
+
+  @ApiPropertyOptional()
+  processing_finished_at?: string;
+
+  @ApiPropertyOptional()
+  updated_at?: string;
 }
 
 export class StatusResponseDto {
