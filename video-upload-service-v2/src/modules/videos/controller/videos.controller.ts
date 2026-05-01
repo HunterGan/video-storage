@@ -131,8 +131,15 @@ export class VideosController {
     description?: string;
     url: string;
     s3_key: string;
+    processed_url?: string;
+    poster_url?: string;
+    error_message?: string;
+    duration?: number;
     status: string;
     created_at: Date;
+    processing_started_at?: Date;
+    processing_finished_at?: Date;
+    updated_at: Date;
   }): VideoResponseDto {
     return {
       id: video.id,
@@ -142,6 +149,13 @@ export class VideosController {
       s3_key: video.s3_key,
       status: video.status,
       created_at: video.created_at.toISOString(),
+      processed_url: video.processed_url,
+      poster_url: video.poster_url,
+      error_message: video.error_message,
+      duration: video.duration,
+      processing_started_at: video.processing_started_at?.toISOString(),
+      processing_finished_at: video.processing_finished_at?.toISOString(),
+      updated_at: video.updated_at.toISOString(),
     };
   }
 }
