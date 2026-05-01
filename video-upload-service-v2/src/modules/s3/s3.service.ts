@@ -23,7 +23,9 @@ export class S3Service implements OnModuleInit {
   onModuleInit() {
     this.endpoint = this.configService.getOrThrow<string>('S3_ENDPOINT');
     this.bucket = this.configService.getOrThrow<string>('S3_BUCKET');
-    this.publicUrl = this.configService.get<string>('S3_PUBLIC_URL') || this.endpoint.replace(/\/+$/, '');
+    this.publicUrl = this.configService.get<string>('S3_PUBLIC_URL') 
+               || this.configService.get<string>('CDN_BASE_URL')
+               || this.endpoint.replace(/\/+$/, '');
     this.presignedUrlTtlSeconds =
     this.configService.get<number>('PRESIGNED_URL_TTL_SECONDS') || 3600;
     this.client = new S3Client({
