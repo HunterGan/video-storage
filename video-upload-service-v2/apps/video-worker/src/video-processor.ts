@@ -170,21 +170,23 @@ export class VideoProcessor {
       const processedMetadata = await this.ffmpeg.getMetadata(outputPath);
       const cdnBase = process.env.CDN_BASE_URL || '';
       await this.prisma.video.update({
-        where: { id: videoId },
-        data: {
-          status: VideoStatus.COMPLETED,
-          processing_finished_at: new Date(),
-          processed_url: `${cdnBase}/${processedKey}`,
-          poster_url: `${cdnBase}/${posterKey}`,
-          duration: processedMetadata.duration,
-          file_size: processedMetadata.file_size,
-          skipped_encode: false,
-          encode_crf: qualityProfile.crf,
-          encode_preset: qualityProfile.preset,
-          encode_scale_filter: scaleFilter,
-          encode_audio_bitrate: qualityProfile.audioBitrate,
-        },
-      });
+                where: { id: videoId },
+                data: {
+                  status: VideoStatus.COMPLETED,
+                  processing_finished_at: new Date(),
+                  processed_url: `${cdnBase}/${processedKey}`,
+                  poster_url: `${cdnBase}/${posterKey}`,
+                  duration: processedMetadata.duration,
+                  file_size: processedMetadata.file_size,
+                  skipped_encode: false,
+                  encode_settings: {
+                    crf: qualityProfile.crf,
+                    preset: qualityProfile.preset,
+                    scale_filter: scaleFilter,
+                    audio_bitrate: qualityProfile.audioBitrate,
+                  },
+                },
+              });
 
       this.logger.info(
         `[${videoId}] Processing complete: ${metadata.file_size} → ${processedMetadata.file_size} bytes`,

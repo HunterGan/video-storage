@@ -42,8 +42,8 @@ export function VideoCard({
       )}
     >
       <div className="relative aspect-video bg-gray-900">
-        {video.thumbnail ? (
-          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
+        {video.poster_url ? (
+          <img src={video.poster_url} alt={video.title} className="w-full h-full object-cover" />
         ) : (
           <video
             src={video.url}
@@ -73,7 +73,7 @@ export function VideoCard({
           {video.title}
         </h3>
         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-          <span>{formatSize(video.size)}</span>
+          <span>{formatSize(video.file_size)}</span>
           <span>•</span>
           <span>{new Date(video.createdAt).toLocaleDateString()}</span>
         </div>

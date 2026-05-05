@@ -210,8 +210,8 @@ export function VideoList({
                   </TableCell>
                   <TableCell>
                     <div className="w-20 h-12 bg-gray-900 rounded overflow-hidden">
-                      {video.thumbnail ? (
-                        <img src={video.thumbnail} alt="" className="w-full h-full object-cover" />
+                      {video.poster_url ? (
+                        <img src={video.poster_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <video src={video.url} className="w-full h-full object-cover" preload="metadata" />
                       )}
@@ -221,13 +221,13 @@ export function VideoList({
                     {video.title}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {formatSize(video.size)}
+                    {formatSize(video.file_size)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDuration(video.duration)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(video.createdAt).toLocaleDateString()}
+                    {video.createdAt}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">

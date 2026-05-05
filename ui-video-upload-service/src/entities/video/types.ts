@@ -4,7 +4,8 @@ export interface Video {
   url: string;
   thumbnail?: string;
   duration?: number;
-  size?: number;
+  poster_url?: string
+  file_size?: number;
   folderId?: string | null;
   status: 'idle' | 'processing' | 'ready' | 'error';
   createdAt: string;
