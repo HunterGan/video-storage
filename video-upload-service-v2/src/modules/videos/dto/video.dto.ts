@@ -45,6 +45,37 @@ export class CreateVideoRequestDto {
   description?: string;
 }
 
+export class VideoMetadataResponseDto {
+  @ApiPropertyOptional()
+  width?: number;
+
+  @ApiPropertyOptional()
+  height?: number;
+
+  @ApiPropertyOptional()
+  bit_rate?: number;
+
+  @ApiPropertyOptional()
+  codec?: string;
+
+  @ApiPropertyOptional()
+  format?: string;
+}
+
+export class EncodeSettingsResponseDto {
+  @ApiPropertyOptional()
+  crf?: number;
+
+  @ApiPropertyOptional()
+  preset?: string;
+
+  @ApiPropertyOptional()
+  scaleFilter?: string;
+
+  @ApiPropertyOptional()
+  audioBitrate?: string;
+}
+
 export class VideoResponseDto {
   @ApiProperty()
   id!: string;
@@ -90,6 +121,18 @@ export class VideoResponseDto {
 
   @ApiPropertyOptional()
   file_size?: number;
+
+  @ApiPropertyOptional({ type: VideoMetadataResponseDto })
+  metadata?: VideoMetadataResponseDto;
+
+  @ApiPropertyOptional({ type: EncodeSettingsResponseDto })
+  encode_settings?: EncodeSettingsResponseDto;
+
+  @ApiPropertyOptional()
+  skipped_encode?: boolean;
+
+  @ApiPropertyOptional()
+  skip_reason?: string;
 }
 
 export class StatusResponseDto {

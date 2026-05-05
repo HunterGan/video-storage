@@ -4,6 +4,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { Request, Response, NextFunction } from 'express';
+import { unlinkSync, mkdirSync, existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -70,6 +73,33 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const port = process.env.APP_PORT || 8080;
+
+  const tmpDir = process.env.TMP_DIR || '/tmp/video-processing';
+  if (!existsSync(tmpDir)) {
+    mkdirSync(tmpDir, { recursive: true });
+    console.log(`Created TMP_DIR: ${tmpDir}`);
+  }
+
+  // Health check: ffmpeg и ffprobe должны быть доступны
+  const ffmpeg = spawnSync(process.env.FFMPEG_PATH || 'ffmpeg', ['-version'], {
+    timeout: 3000,
+  });
+  if (ffmpeg.status !== 0) {
+    console.error('ERROR: ffmpeg is not available or not in PATH');
+    process.exit(1);
+  }
+
+  const ffprobe = spawnSync(process.env.FFPROBE_PATH || 'ffprobe', ['-version'], {
+    timeout: 3000,
+  });
+  if (ffprobe.status !== 0) {
+    console.error('ERROR: ffprobe is not available or not in PATH');
+    process.exit(1);
+  }
+
+  console.log('ffmpeg and ffprobe are available');
+  console.log(`TMP_DIR: ${tmpDir}`);
+  
   await app.listen(port);
 
   // Graceful shutdown

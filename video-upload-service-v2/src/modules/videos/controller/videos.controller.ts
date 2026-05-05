@@ -14,16 +14,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { VideoService } from '../service/video.service';
-import {
-  UploadUrlRequestDto,
-  UploadUrlResponseDto,
-  CreateVideoRequestDto,
-  VideoResponseDto,
-  PaginationParamsDto,
-  PaginatedVideosDto,
-  UploadVideoDto,
-  StatusResponseDto,
-} from '../dto/video.dto';
+import {   UploadUrlRequestDto,   UploadUrlResponseDto,   CreateVideoRequestDto,   VideoResponseDto,   PaginationParamsDto,   PaginatedVideosDto,   UploadVideoDto,   StatusResponseDto,   VideoMetadataResponseDto,   EncodeSettingsResponseDto, } from '../dto/video.dto';
 
 @ApiTags('videos')
 @Controller('videos')
@@ -125,7 +116,7 @@ export class VideosController {
     return this.videoService.deleteVideo(id);
   }
 
-  private mapToDto(video: {
+    private mapToDto(video: {
     id: string;
     title: string;
     description?: string;
@@ -141,6 +132,13 @@ export class VideosController {
     processing_started_at?: Date;
     processing_finished_at?: Date;
     updated_at: Date;
+    processed_key?: string;
+    skipped_encode?: boolean;
+    skip_reason?: string;
+    encode_crf?: number;
+    encode_preset?: string;
+    encode_scale_filter?: string;
+    encode_audio_bitrate?: string;
   }): VideoResponseDto {
     return {
       id: video.id,
@@ -158,6 +156,24 @@ export class VideosController {
       processing_finished_at: video.processing_finished_at?.toISOString(),
       updated_at: video.updated_at.toISOString(),
       file_size: video.file_size,
+      metadata: video.duration || video.file_size
+        ? {
+            width: undefined,
+            height: undefined,
+            bit_rate: undefined,
+            codec: undefined,
+          }
+        : undefined,
+      encode_settings: video.skipped_encode === false
+        ? {
+            crf: video.encode_crf,
+            preset: video.encode_preset,
+            scaleFilter: video.encode_scale_filter,
+            audioBitrate: video.encode_audio_bitrate,
+          }
+        : undefined,
+      skipped_encode: video.skipped_encode,
+      skip_reason: video.skip_reason,
     };
   }
 }

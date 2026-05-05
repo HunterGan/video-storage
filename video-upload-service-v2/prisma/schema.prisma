@@ -21,22 +21,30 @@ enum VideoQuality {
 }
 
 model Video {
-  id            String         @id @default(uuid())
-  title         String
-  description   String?
-  url           String
-  s3_key        String         @unique
-  processed_url String?
-  poster_url    String?
-  status                  VideoStatus    @default(UPLOADED)
+  id                  String         @id @default(uuid())
+  title               String
+  description         String?
+  url                 String
+  s3_key              String         @unique
+  processed_url       String?
+  poster_url          String?
+  status              VideoStatus    @default(UPLOADED)
   processing_started_at   DateTime?
   processing_finished_at  DateTime?
-  error_message           String?
-  duration                Float?
-  file_size               BigInt?
-  created_at              DateTime      @default(now())
-  updated_at              DateTime      @updatedAt
-  versions                VideoVersion[]
+  error_message       String?
+  duration            Float?
+  file_size           BigInt?
+  // Новая: метаданные оригинала
+  original_bit_rate   Int?
+  original_codec      String?
+  // Новая: настройки кодирования
+  encode_settings     Json?
+  // Новая: статус обработки
+  skipped_encode      Boolean      @default(false)
+  skip_reason         String?      @db.VarChar(50)
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+  versions            VideoVersion[]
   @@map("videos")
   @@index([created_at])
   @@index([s3_key])
